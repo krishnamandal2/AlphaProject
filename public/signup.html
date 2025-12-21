@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      width: 350px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+<form id="signupForm">
+  <label>Name</label>
+  <input id="name" name="name" type="text" required />
+
+  <label>Email</label>
+  <input type="email" name="email" required />
+
+  <label>Mobile</label>
+  <input type="tel" name="mobile" required />
+
+  <label>Profile Image</label>
+  <input type="file" name="image" accept="image/*" />
+
+  <label>Password</label>
+  <input type="password" name="password" required />
+
+  <button type="submit">Register</button>
+</form>
+
+<script>
+const form = document.getElementById('signupForm');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault(); // prevent page reload
+
+  // Create FormData object
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch('http://localhost:4000/api/auth/signup', {
+      method: 'POST',
+      body: formData
+      // Note: fetch automatically sets Content-Type to multipart/form-data with FormData
+    });
+
+    const data = await response.json();
+    alert(data.message);
+    form.reset();
+
+  } catch (err) {
+    console.error('Error:', err);
+    alert('Signup failed!');
+  }
+});
+</script>
+
+</body>
+</html>

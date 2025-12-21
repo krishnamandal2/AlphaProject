@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Users List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background: #007bff;
+      color: #fff;
+    }
+    img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Users List</h2>
+ <button onclick="logout()">Logout</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Mobile</th>
+      <th>Image</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="usersTable">
+    <tr>
+      <td colspan="5">Loading...</td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+async function loadUsers() {
+
+  const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+
+if (!token || role !== "admin") {
+  alert("Admin access only");
+  window.location.href = "login.html";
+}
+  try {
+    const res = await fetch('/api/auth/users',{
+        headers: {
+    Authorization: "Bearer " + localStorage.getItem("token")
+  }
+    }
+
+    
+
+    );
+    const result = await res.json();
+
+    const users = result.data;
+    const table = document.getElementById('usersTable');
+    table.innerHTML = '';
+
+    if (users.length === 0) {
+      table.innerHTML = '<tr><td colspan="5">No users found</td></tr>';
+      return;
+    }
+
+    users.forEach(user => {
+      const row = `
+        <tr>
+          <td>${user.id}</td>
+          <td>${user.name}</td>
+          <td>${user.email}</td>
+          <td>${user.mobile}</td>
+          <td>
+            ${user.image 
+              ? `<img src="/uploads/${user.image}" />` 
+              : 'No Image'}
+          </td>
+           <td> 
+             <a href="updateuser.html?id=${user.id}">
+                    <button>Edit</button>
+                </a>
+                <button onclick="deleteUser(${user.id})">Delete</button>
+            </td>
+        </tr>
+      `;
+      table.innerHTML += row;
+    });
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load users");
+  }
+}
+/* email admin@gmail.com pass 1111 acc=8888*/
+
+
+ function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    window.location.href = "login.html";
+  }
+loadUsers();
+</script>
+
+</body>
+</html>

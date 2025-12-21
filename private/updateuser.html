@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Update User</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+    img {
+      border: 1px solid #ccc;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Update User</h2>
+
+<form id="updateForm" enctype="multipart/form-data">
+  <input id="Name" type="text" name="name" placeholder="Update Name" required><br><br>
+  <input id="Email" type="email" name="email" placeholder="Update Email" required><br><br>
+  <input id="Mobile" type="text" name="mobile" placeholder="Update Mobile" required><br><br>
+
+  <!-- Current Image -->
+  <label>Current Image</label><br>
+  <img id="currentImage" width="120" style="display:none;"><br><br>
+
+  <!-- Upload New Image -->
+  <label>Upload New Image</label><br>
+  <input type="file" name="image" id="imageInput" accept="image/*"><br><br>
+
+  <!-- Preview -->
+  <label>Preview New Image</label><br>
+  <img id="previewImage" width="120" style="display:none;"><br><br>
+
+  <button type="submit">Update User</button>
+</form>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+
+  if (!id) {
+    alert("User ID missing");
+    throw new Error("User ID missing");
+  }
+
+  const form = document.getElementById("updateForm");
+  const nameInput = document.getElementById("Name");
+  const emailInput = document.getElementById("Email");
+  const mobileInput = document.getElementById("Mobile");
+  const imageInput = document.getElementById("imageInput");
+  const currentImage = document.getElementById("currentImage");
+  const previewImage = document.getElementById("previewImage");
+
+  // ===============================
+  // LOAD USER DATA
+  // ===============================
+  async function loadUser() {
+    try {
+      const res = await fetch(`/api/auth/usergetbyid/${id}`);
+      const data = await res.json();
+
+      if (!data.userdata || data.userdata.length === 0) {
+        alert("User not found");
+        return;
+      }
+
+      const user = data.userdata[0];
+
+      nameInput.value = user.name;
+      emailInput.value = user.email;
+      mobileInput.value = user.mobile;
+
+      if (user.image) {
+        
+         currentImage.src = `/uploads/${user.image}`;
+        currentImage.style.display = "block";
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load user");
+    }
+  }
+
+  loadUser();
+
+  // ===============================
+  // IMAGE PREVIEW
+  // ===============================
+  imageInput.addEventListener("change", () => {
+    const file = imageInput.files[0];
+    if (file) {
+      previewImage.src = URL.createObjectURL(file);
+      previewImage.style.display = "block";
+    }
+  });
+
+  // ===============================
+  // UPDATE USER
+  // ===============================
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch(`/api/auth/userupdate/${id}`, {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await res.json();
+      alert(result.msg || "User updated");
+
+      window.location.href = "userget.html";
+    } catch (err) {
+      console.error(err);
+      alert("Update failed");
+    }
+  });
+</script>
+
+</body>
+</html>

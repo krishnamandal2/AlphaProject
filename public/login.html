@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Form</title>
+</head>
+<body>
+
+  <form id="loginForm" onsubmit="event.preventDefault(); login();">
+  <input id="email" type="email" placeholder="Email" required><br><br>
+  <input id="password" type="password" placeholder="Password" required><br><br>
+  <input id="accessNumber" type="text" placeholder="Access Number (user)"><br><br>
+  <input id="accessToken" type="text" placeholder="Access Token (admin)"><br><br>
+  <button type="submit">Login</button>
+</form>
+
+<script>
+async function login() {
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const accessNumber = document.getElementById("accessNumber").value;
+  const accessToken = document.getElementById("accessToken").value;
+
+  const res = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      password,
+      accessNumber,
+      accessToken
+    })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.msg);
+    return;
+  }
+
+  // 🔐 save token
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("role", data.role);
+
+  // ✅ redirect by role
+  if (data.role === "admin") {
+    window.location.href = "userget.html"; // admin dashboard
+  } else {
+    window.location.href = "userdash.html"; // user dashboard
+  }
+}
+</script>
+
+
+    
+</body>
+</html>
