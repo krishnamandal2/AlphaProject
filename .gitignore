@@ -1,7 +1,7 @@
 # Node modules
 node_modules/
 
-# Environment variables
+# Environment variable
 .env
 uploads/
 # Logs
