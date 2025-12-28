@@ -4,6 +4,7 @@ node_modules/
 # Environment variable
 .env
 uploads/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
