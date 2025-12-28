@@ -5,54 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Dashboard</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .dashboard {
-      background: #fff;
-      padding: 20px;
-      width: 400px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    img {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-    }
-
-    h2 {
-      margin-bottom: 20px;
-    }
-
-    p {
-      font-size: 16px;
-      margin: 5px 0;
-    }
-
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
+    body { font-family: Arial; display:flex; justify-content:center; padding:20px; }
+    .dashboard { background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1); text-align:center; }
+    img { width:120px; height:120px; border-radius:50%; margin-bottom:15px; border:1px solid #ccc; }
+    button { margin-top:20px; padding:10px 20px; background:#007bff; color:#fff; border:none; border-radius:5px; cursor:pointer; }
+    button:hover { background:#0056b3; }
   </style>
 </head>
 <body>
@@ -63,61 +20,59 @@
   <p><strong>Name:</strong> <span id="name"></span></p>
   <p><strong>Email:</strong> <span id="email"></span></p>
   <p><strong>Mobile:</strong> <span id="mobile"></span></p>
-
   <button onclick="logout()">Logout</button>
 </div>
 
 <script>
-const token = localStorage.getItem("token");
-const role = localStorage.getItem("role");
+async function loadUser() {
+  try {
+    const res = await fetch("/api/auth/userdash", {
+      credentials: "include"
+    });
 
-if (!token || role !== "user") {
-  alert("User access only");
-  window.location.href = "login.html";
-}
-
-  async function loadUser() {
-    try {
-      const res = await fetch("/api/auth/userdash", {
-        headers: { "Authorization": "Bearer " + token }
+        if (res.status === 401) {
+      // call refresh token
+      const refresh = await fetch("/api/auth/refresh-token", {
+        method: "POST",
+        credentials: "include"
       });
 
-      if (!res.ok) throw new Error("Unauthorized");
+      if (!refresh.ok) throw new Error("Session expired");
 
-      const data = await res.json();
-      const user = data.user;
-
-      document.getElementById("name").innerText = user.name;
-      document.getElementById("email").innerText = user.email;
-      document.getElementById("mobile").innerText = user.mobile;
-
-      if (user.image) {
-        const profileImage = document.getElementById("profileImage");
-        profileImage.src = user.image.startsWith("/uploads") ? user.image : `/uploads/${user.image}`;
-        profileImage.style.display = "block";
-      }
-
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load user info. Please login again.");
-      localStorage.removeItem("token");
-      window.location.href = "login.html";
+      // retry dashboard request
+      res = await fetch("/api/auth/userdash", {
+        credentials: "include"
+      });
     }
-  }
 
-  function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
+
+    const data = await res.json();
+    const user = data.user;
+
+    document.getElementById("name").innerText = user.name;
+    document.getElementById("email").innerText = user.email;
+    document.getElementById("mobile").innerText = user.mobile;
+
+    if (user.image) {
+      const profileImage = document.getElementById("profileImage");
+      profileImage.src = user.image.startsWith("/uploads") ? user.image : `/uploads/${user.image}`;
+      profileImage.style.display = "block";
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Please login again");
     window.location.href = "login.html";
   }
+}
 
-  loadUser();
+function logout() {
+  fetch("/api/auth/logout", { method:"POST", credentials:"include" })
+    .then(() => window.location.href = "login.html");
+}
 
-  /*
-  email testuser@gmail.com pass=123  token 1234*/
+loadUser();
 </script>
 
 </body>
 </html>
-
-

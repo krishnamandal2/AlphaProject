@@ -1,39 +1,48 @@
 const bcrypt = require("bcrypt");
 const userModel = require("../models/usermodels");
 const jwt = require("jsonwebtoken");
+// const path = require("path");
+// const fs = require("fs");
+// const PDFDocument = require("pdfkit");
+ const { getNewYearMessage } = require("../helpers/messageHelper");
+
+const { buildUserPDF } = require("../services/pdfService");
+const { sendGreetingMail } = require("../services/mailService");
 
 
-exports.signup = async (req, res) => {
+
+// exports.signup = async (req, res) => {
+
   
-  try {
-    const { name, email, mobile, password } = req.body;
+//   try {
+//     const { name, email, mobile, password } = req.body;
 
-    // hash password
-    const hashedPassword = await bcrypt.hash(password, 10); // 10 sal round
+//     // hash password
+//     const hashedPassword = await bcrypt.hash(password, 10); // 10 sal round
 
-    // image from multer
-    const image = req.file ? req.file.filename : null;
+//     // image from multer
+//     const image = req.file ? req.file.filename : null;
 
-    // call model
-    await userModel.createUser({
-      name,
-      email,
-      mobile,
-      image,
-      password: hashedPassword,
-    });
+//     // call model
+//     await userModel.createUser({
+//       name,
+//       email,
+//       mobile,
+//       image,
+//       password: hashedPassword,
+//     });
 
-    res.status(201).json({
-      message: "User registered successfully",
-    });
+//     res.status(201).json({
+//       message: "User registered successfully",
+//     });
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Signup failed",
-    });
-  }
-};
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       message: "Signup failed",
+//     });
+//   }
+// };
 
 // get users
 
@@ -48,22 +57,135 @@ exports.signup = async (req, res) => {
 //   }
 // };
 
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await userModel.getuser();  // fetch users from DB
+////////user with pagination
 
-    res.status(200).json({
-      message: "Users fetched successfully",  // custom message
-      data: users                             // actual users
+// exports.getAllUsers = async (req, res) => {
+//   try {
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 5;
+
+//     const users = await userModel.getUsersPaginated(page, limit);
+//     const total = await userModel.getUsersCount();
+
+   
+//     res.json({
+//       data: users,
+//       pagination: {
+//         page,
+//         limit,
+//         totalUsers: total,
+//         totalPages: Math.ceil(total / limit)
+//       }
+//     });
+
+//   } catch (err) {
+//     res.status(500).json({ msg: "Server error" });
+//   }
+// };
+
+ ////pagination with searching
+
+
+
+
+ exports.signup = async (req, res) => {
+  try {
+    const { name, email, mobile, password } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const image = req.file ? req.file.filename : null;
+
+    // ✅ create user
+    const result = await userModel.createUser({
+      name,
+      email,
+      mobile,
+      image,
+      password: hashedPassword
     });
 
+    // respond immediately (DO NOT WAIT FOR EMAIL)
+    res.status(201).json({
+      message: "User registered successfully"
+    });
+
+    // 🔥 BACKGROUND TASK (AFTER REGISTRATION)
+    setTimeout(async () => {
+      try {
+        const user = {
+          id: result.insertId,
+          name,
+          email,
+          image
+        };
+
+        const pdfBuffer = await buildUserPDF(user);
+
+        await sendGreetingMail(
+          email,
+          pdfBuffer,
+          `${name.replace(/\s+/g, "_")}_New_Year_2026.pdf`
+        );
+
+        console.log("✅ PDF email sent to", email);
+      } catch (err) {
+        console.error("❌ Email/PDF error:", err);
+      }
+    }, 1 * 60 * 1000); // ⏱️ 1 minutes delay
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({
-      message: "Failed to fetch users",
-      error: error.message                    // optional error info
+      message: "Signup failed"
     });
   }
 };
+
+
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const search = req.query.search || "";
+
+    const users = await userModel.getUsersPaginated(page, limit, search);
+    const total = await userModel.getUsersCount(search);
+
+    res.json({
+      pagination: {
+        page,
+        limit,
+        totalUsers: total,
+        totalPages: Math.ceil(total / limit)
+      },
+      data: users
+    });
+
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+
+
+
+// exports.getAllUsers = async (req, res) => {
+//   try {
+//     const users = await userModel.getuser();  // fetch users from DB
+
+//     res.status(200).json({
+//       message: "Users fetched successfully",  // custom message
+//       data: users                             // actual users
+//     });
+
+//   } catch (error) {
+//     res.status(500).json({
+//       message: "Failed to fetch users",
+//       error: error.message                    // optional error info
+//     });
+//   }
+// };
 
 //upadteusers
 
@@ -139,12 +261,17 @@ exports.getUserById = async (req, res) => {
 
     if (result.length === 0) {
       return res.status(404).json({
-        msg: "User not found"
+        msg: "User not found",
+       
       });
     }
-
+ 
+    const user = result[0];
+    const message = getNewYearMessage(user.name); // use helper
     res.json({
-      userdata: result
+      userdata: result,
+      message
+
     });
 
   } catch (error) {
@@ -218,54 +345,146 @@ exports.getUserDashboard = async (req, res) => {
 
 
 
-
 exports.login = async (req, res) => {
   const { email, password, accessNumber, accessToken } = req.body;
 
   try {
     const users = await userModel.getUserByEmail(email);
-
     if (users.length === 0) {
       return res.status(401).json({ msg: "Invalid email" });
     }
 
     const user = users[0];
 
-    // 🔐 password compare
+    // 🔐 password check
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ msg: "Invalid password" });
     }
 
-    // 🔑 ROLE LOGIC (VERY IMPORTANT)
+    // 🔑 role logic
     let role;
+    if (accessToken === "8888") role = "admin";
+    else if (accessNumber === "1234") role = "user";
+    else return res.status(403).json({ msg: "Invalid access credentials" });
 
-    if (accessToken === "8888") {
-      role = "admin";
-    } else if (accessNumber === "1234") {
-      role = "user";
-    } else {
-      return res.status(403).json({ msg: "Invalid access credentials" });
-    }
-
-    // 🔐 create token
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        role: role
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+    // 🔐 access token (SHORT)
+    const accessTokenJwt = jwt.sign(
+      { id: user.id, email: user.email, role },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: "15m" }
     );
 
+    // 🔄 refresh token (LONG)
+    const refreshTokenJwt = jwt.sign(
+      { id: user.id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // 🍪 HttpOnly cookies
+    res.cookie("accessToken", accessTokenJwt, {
+      httpOnly: true,
+      secure: false, // true in production (HTTPS)
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000
+    });
+
+    res.cookie("refreshToken", refreshTokenJwt, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
     res.json({
-      msg: "Login success",
-      token,
+      msg: "Login successful",
       role
     });
 
   } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+///*******Refresh Token */
+
+
+exports.refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ msg: "No refresh token provided" });
+    }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET
+    );
+
+    const newAccessToken = jwt.sign(
+      { id: decoded.id },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000
+    });
+
+    res.json({ msg: "Access token refreshed" });
+
+  } catch (err) {
+    console.error("Refresh token error:", err);
+    res.status(403).json({ msg: "Invalid refresh token" });
+  }
+};
+
+///logout 
+
+exports.logout = (req, res) => {
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+
+  res.json({ msg: "Logged out successfully" });
+};
+
+
+exports.generateUserPDF = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const users = await userModel.getUserById(userId);
+
+    if (!users.length) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    const user = users[0];
+
+    // ✅ reuse SAME PDF
+    const pdfBuffer = await buildUserPDF(user);
+
+    const mode = req.query.mode === "download"
+      ? "attachment"
+      : "inline";
+
+    const filename = `${user.name.replace(/\s+/g, "_")}_new_year_2026.pdf`;
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `${mode}; filename="${filename}"`
+    );
+
+    res.send(pdfBuffer);
+
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: "Server error" });
   }
 };

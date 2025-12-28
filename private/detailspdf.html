@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Details</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f8;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .details-container {
+    background: #fff;
+    display: flex;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    max-width: 700px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .profile-image {
+    flex: 1;
+    background: #e9ecef;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .profile-image img {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #007bff;
+  }
+
+  .user-details {
+    flex: 2;
+    padding: 30px;
+  }
+
+  .user-details h2 {
+    margin: 8px 0;
+    color: #333;
+  }
+
+  .user-details p {
+    margin-top: 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #555;
+    white-space: pre-line;
+  }
+
+  .btn-container {
+    margin-top: 25px;
+  }
+
+  button {
+    padding: 12px 25px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  button:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  @media(max-width: 600px){
+    .details-container {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .profile-image, .user-details {
+      flex: unset;
+      width: 100%;
+      text-align: center;
+    }
+
+    .user-details h2 {
+      font-size: 18px;
+    }
+
+    button {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="details-container">
+  <div class="profile-image">
+    <img id="profileImage" src="" alt="Profile Image" style="display:none;">
+  </div>
+  <div class="user-details">
+    <h2 id="name">Name: </h2>
+    <h2 id="email">Email: </h2>
+    <h2 id="mobile">Mobile: </h2>
+    <p id="message"></p>
+
+    <h3>PDF Preview</h3>
+
+<iframe
+  id="pdfPreview"
+  width="100%"
+  height="600px"
+  style="border:1px solid #ccc; border-radius:8px;"
+></iframe>
+
+    <div class="btn-container">
+      <button id="downloadPDF">Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function getUserIdFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("id");
+}
+
+async function loadUserDetails() {
+  const userId = getUserIdFromURL();
+  if (!userId) { alert("Invalid user ID"); return; }
+
+  try {
+    const res = await fetch(`/api/auth/usergetbyid/${userId}`, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch user");
+
+    const data = await res.json();
+    const user = data.userdata[0];
+
+    document.getElementById("name").innerText = "Name: " + user.name;
+    document.getElementById("email").innerText = "Email: " + user.email;
+    document.getElementById("mobile").innerText = "Mobile: " + user.mobile;
+
+    if (user.image) {
+      const img = document.getElementById("profileImage");
+      img.src = user.image.startsWith("/uploads") ? user.image : `/uploads/${user.image}`;
+      img.style.display = "block";
+    }
+
+    document.getElementById("message").innerText = data.message;
+
+//     document.getElementById("message").innerText =
+//       `Hi ${user.name},\nAs we step into 2026, I’ve been reflecting on everything we’ve shared over the past year. 
+// My greatest wish for you in this New Year is that you find even more reasons to smile!`;
+
+  //for preview pdf
+document.getElementById("pdfPreview").src =
+  `/api/auth/user/${userId}/pdf`; // inline by default
+
+    document.getElementById("downloadPDF").onclick = () => {
+      window.open(`/api/auth/user/${userId}/pdf`, "_blank");
+    };
+
+
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load user details");
+  }
+}
+
+loadUserDetails();
+
+
+</script>
+</body>
+</html>

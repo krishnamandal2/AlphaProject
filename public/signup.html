@@ -4,94 +4,189 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Register</title>
+
   <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
     }
-    form {
+
+    .card {
       background: #fff;
-      padding: 20px;
-      width: 350px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 380px;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+      animation: fadeIn 0.5s ease-in-out;
     }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
     label {
-      font-weight: bold;
-      margin-top: 10px;
+      font-weight: 600;
       display: block;
+      margin-bottom: 5px;
+      color: #444;
     }
+
     input {
       width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-    }
-    button {
-      margin-top: 15px;
-      width: 100%;
       padding: 10px;
-      background: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      transition: border 0.3s, box-shadow 0.3s;
     }
+
+    input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+      outline: none;
+    }
+
+    .image-preview {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-top: 10px;
+      object-fit: cover;
+      display: none;
+      border: 2px solid #ddd;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
     button:hover {
-      background: #0056b3;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    }
+
+    .footer-text {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 13px;
+      color: #666;
     }
   </style>
 </head>
 <body>
 
-<form id="signupForm">
-  <label>Name</label>
-  <input id="name" name="name" type="text" required />
+  <div class="card">
+    <h2>Create Account</h2>
 
-  <label>Email</label>
-  <input type="email" name="email" required />
+    <form id="signupForm" enctype="multipart/form-data">
 
-  <label>Mobile</label>
-  <input type="tel" name="mobile" required />
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" name="name" required />
+      </div>
 
-  <label>Profile Image</label>
-  <input type="file" name="image" accept="image/*" />
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" required />
+      </div>
 
-  <label>Password</label>
-  <input type="password" name="password" required />
+      <div class="form-group">
+        <label>Mobile</label>
+        <input type="tel" name="mobile" required />
+      </div>
 
-  <button type="submit">Register</button>
-</form>
+      <div class="form-group">
+        <label>Profile Image</label>
+        <input type="file" name="image" accept="image/*" id="imageInput" />
+        <img id="preview" class="image-preview" />
+      </div>
 
-<script>
-const form = document.getElementById('signupForm');
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" required />
+      </div>
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault(); // prevent page reload
+      <button type="submit">Register</button>
+    </form>
 
-  // Create FormData object
-  const formData = new FormData(form);
+    <!-- <div class="footer-text">
+      Already have an account? Login
+    </div> -->
+  </div>
 
-  try {
-    const response = await fetch('http://localhost:4000/api/auth/signup', {
-      method: 'POST',
-      body: formData
-      // Note: fetch automatically sets Content-Type to multipart/form-data with FormData
+  <script>
+    const form = document.getElementById("signupForm");
+    const imageInput = document.getElementById("imageInput");
+    const preview = document.getElementById("preview");
+
+    imageInput.addEventListener("change", () => {
+      const file = imageInput.files[0];
+      if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+      }
     });
 
-    const data = await response.json();
-    alert(data.message);
-    form.reset();
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-  } catch (err) {
-    console.error('Error:', err);
-    alert('Signup failed!');
-  }
-});
-</script>
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch("/api/auth/signup", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+      if (response.ok) {
+    window.location.href = "/thankyou.html";
+}    else {
+  alert(data.message || "Signup failed!");
+}
+
+
+
+
+      } catch (err) {
+        alert("Signup failed!");
+      }
+    });
+  </script>
 
 </body>
 </html>

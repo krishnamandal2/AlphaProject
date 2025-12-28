@@ -38,20 +38,110 @@ exports.getuser=()=>{
 
 */
 
-exports.getuser=()=>{ 
+// exports.getuser=()=>{ 
 
-  return new Promise((resolve,reject)=>{
-    db.query(
-      "select*from users",
-      (err,result)=>{
+//   return new Promise((resolve,reject)=>{
+//     db.query(
+//       "select*from users",
+//       (err,result)=>{
 
-        if(err) reject(err);
-        else resolve(result)
-      }
-    )
-  })
+//         if(err) reject(err);
+//         else resolve(result)
+//       }
+//     )
+//   })
    
-}
+// }
+
+//for pagination
+
+// exports.getUsersPaginated = (page, limit) => {
+//   const offset = (page - 1) * limit;
+
+//   return new Promise((resolve, reject) => {
+//     db.query(
+//       `SELECT id, name, email, mobile, image 
+//        FROM users 
+//        LIMIT ? OFFSET ?`,
+//       [limit, offset],
+//       (err, result) => {
+//         if (err) reject(err);
+//         else resolve(result);
+//       }
+//     );
+//   });
+// };
+
+
+// exports.getUsersCount = () => {
+//   return new Promise((resolve, reject) => {
+//     db.query(
+//       "SELECT COUNT(*) AS total FROM users",
+//       (err, result) => {
+//         if (err) reject(err);
+//         else resolve(result[0].total);
+//       }
+//     );
+//   });
+// };
+
+///////////pagination+searching
+exports.getUsersPaginated = (page, limit, search) => {
+  const offset = (page - 1) * limit;
+
+  let query = `
+    SELECT id, name, email, mobile, image
+    FROM users
+  `;
+  let values = [];
+
+  if (search) {
+    query += `
+      WHERE name LIKE ?
+         OR email LIKE ?
+         OR mobile LIKE ?
+    `;
+    values.push(`%${search}%`, `%${search}%`, `%${search}%`);
+  }
+
+  query += ` LIMIT ? OFFSET ?`;
+  values.push(limit, offset);
+
+  return new Promise((resolve, reject) => {
+    db.query(query, values, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+};
+
+
+
+exports.getUsersCount = (search) => {
+  let query = `SELECT COUNT(*) AS total FROM users`;
+  let values = [];
+
+  if (search) {
+    query += `
+      WHERE name LIKE ?
+         OR email LIKE ?
+         OR mobile LIKE ?
+    `;
+    values.push(`%${search}%`, `%${search}%`, `%${search}%`);
+  }
+
+  return new Promise((resolve, reject) => {
+    db.query(query, values, (err, result) => {
+      if (err) reject(err);
+      else resolve(result[0].total);
+    });
+  });
+};
+
+
+
+
+
 
 //update users
 
@@ -71,7 +161,8 @@ exports.updateusers = (id, data) => {
 };
 
 
-///user get by id
+//user get by id
+
 exports.getUserById = (id) => {
   return new Promise((resolve, reject) => {
     db.query(
@@ -87,6 +178,12 @@ exports.getUserById = (id) => {
     );
   });
 };
+
+
+
+
+
+
 
 
 

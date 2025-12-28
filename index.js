@@ -7,6 +7,8 @@ const cookieParser = require("cookie-parser");
 
 
 
+
+
 console.log("Auth route file path:", require.resolve("./routes/authRoutes"));
 
 
@@ -27,9 +29,7 @@ app.use(express.static(path.join(__dirname, "private")));
 
 
 app.use("/api/auth", authroute);
-app.use("api/auth",authroute);
-app.use("api/auth",authroute)
-app.use("/api/auth",authroute)
+
 
 
 app.listen(process.env.PORT,()=>{
