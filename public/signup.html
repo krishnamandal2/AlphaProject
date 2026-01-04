@@ -141,52 +141,67 @@
       </div>
 
       <button type="submit">Register</button>
+
     </form>
-
-    <!-- <div class="footer-text">
-      Already have an account? Login
-    </div> -->
+  
+<div class="footer-text">
+  Already registered?
+  <a href="/login.html" style="color:#667eea;font-weight:bold;">
+    Login
+  </a>
+</div>
+   
   </div>
+<script>
+  const form = document.getElementById("signupForm");
+  const imageInput = document.getElementById("imageInput");
+  const preview = document.getElementById("preview");
 
-  <script>
-    const form = document.getElementById("signupForm");
-    const imageInput = document.getElementById("imageInput");
-    const preview = document.getElementById("preview");
+  imageInput.addEventListener("change", () => {
+    const file = imageInput.files[0];
+    if (file) {
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = "block";
+    }
+  });
 
-    imageInput.addEventListener("change", () => {
-      const file = imageInput.files[0];
-      if (file) {
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = "block";
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+
+      // ✅ already registered → login
+      if (response.status === 409) {
+        alert("Already registered. Redirecting to login...");
+        window.location.href = "/login.html";
+        return;
       }
-    });
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const formData = new FormData(form);
-
-      try {
-        const response = await fetch("/api/auth/signup", {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await response.json();
-      if (response.ok) {
-    window.location.href = "/thankyou.html";
-}    else {
-  alert(data.message || "Signup failed!");
-}
-
-
-
-
-      } catch (err) {
-        alert("Signup failed!");
+      // ✅ new user → thank you
+      if (response.status === 201) {
+        window.location.href = "/thankyou.html";
+        return;
       }
-    });
-  </script>
+
+      // ❌ other error
+      alert(data.message || "Signup failed!");
+
+    } catch (err) {
+      console.error(err);
+      alert("Server error. Please try again.");
+    }
+  });
+</script>
+
+  
 
 </body>
 </html>

@@ -31,6 +31,10 @@ app.use(express.static(path.join(__dirname, "private")));
 
 app.use("/api/auth", authroute);
 
+app.get("/", (req, res) => {
+  res.send("Server running on Render");
+});
+
 
 
 app.listen(process.env.PORT,()=>{

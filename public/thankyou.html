@@ -48,10 +48,17 @@
 <body>
 
   <div class="box">
-    <h1> Thank You!</h1>
+    <h1>Thank You!</h1>
     <p>You have registered successfully.</p>
-    <p>We’ll send your greeting PDF soon  in your register email📄✨</p>
+    <p>We’ll send your greeting PDF soon in your registered email 📄✨</p>
+    <p><small>Redirecting to login...</small></p>
   </div>
+
+  <script>
+    setTimeout(() => {
+      window.location.href = "login.html"; 
+    }, 3000);
+  </script>
 
 </body>
 </html>
