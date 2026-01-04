@@ -222,4 +222,30 @@ exports.getUserByEmail = (email) => {
   });
 };
 
+//////for cron job
+
+exports.getPendingEmailUsers = () => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      "SELECT * FROM users WHERE email_sent = 0", 
+      (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      }
+    );
+  });
+};
+
+exports.markEmailSent = (id) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      "UPDATE users SET email_sent = 1 WHERE id = ?",
+      [id],
+      (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      }
+    );
+  });
+};
 

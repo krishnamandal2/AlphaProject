@@ -101,37 +101,14 @@ const { sendGreetingMail } = require("../services/mailService");
       email,
       mobile,
       image,
-      password: hashedPassword
+      password: hashedPassword,
+      email_sent: 0
     });
 
     // respond immediately (DO NOT WAIT FOR EMAIL)
     res.status(201).json({
       message: "User registered successfully"
-    });
-
-    // 🔥 BACKGROUND TASK (AFTER REGISTRATION)
-    setTimeout(async () => {
-      try {
-        const user = {
-          id: result.insertId,
-          name,
-          email,
-          image
-        };
-
-        const pdfBuffer = await buildUserPDF(user);
-
-        await sendGreetingMail(
-          email,
-          pdfBuffer,
-          `${name.replace(/\s+/g, "_")}_New_Year_2026.pdf`
-        );
-
-        console.log("✅ PDF email sent to", email);
-      } catch (err) {
-        console.error("❌ Email/PDF error:", err);
-      }
-    }, 1 * 60 * 1000); // ⏱️ 1 minutes delay
+    }); 
 
   } catch (error) {
     console.error(error);

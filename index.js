@@ -4,6 +4,7 @@ require("dotenv").config();
 const db=require("./config/db")
 const path= require("path")
 const cookieParser = require("cookie-parser");
+require("./jobs/sendGreetingJob")
 
 
 

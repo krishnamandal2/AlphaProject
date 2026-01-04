@@ -7,16 +7,18 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev":"node index.js"
+    "start": "nodemon index.js",
+    "dev": "node index.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.66.4",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "fs": "^0.0.1-security",
+    "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "mysql2": "^3.16.0",

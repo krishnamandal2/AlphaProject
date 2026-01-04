@@ -58,14 +58,39 @@ exports.buildUserPDF = (user) => {
           align: "center",
           lineGap: 6
         });
+        // ✅ Bold quote
+doc.moveDown(1)
+  .font("Helvetica-Bold")
+  .fontSize(16)
+  .text(
+    `"Tomorrow is the first blank page of a 365-page book. Write a good one."`,
+    {
+      width: doc.page.width - 200,
+      align: "center"
+    }
+  );
+  doc.moveDown(1)
+  .font("Helvetica")
+  .fontSize(16)
+  .text("Happy New Year!", {
+    width: doc.page.width - 200,
+    align: "center"
+  });
 
-      /* ===== FOOTER ===== */
-      doc.fontSize(12)
-        .fillColor("#999")
-        .text("— From Unknown Person", 100, 600, {
-          width: doc.page.width - 200,
-          align: "center"
-        });
+   /* ===== FOOTER ===== */
+
+// Move cursor below the message safely
+doc.moveDown(2);
+
+// Get current Y after message
+const footerY = doc.y + 40;
+
+doc.fontSize(12)
+  .fillColor("#999")
+  .text("— From Krishna", 100, footerY, {
+    width: doc.page.width - 200,
+    align: "center"
+  });
 
       doc.end();
     } catch (err) {
