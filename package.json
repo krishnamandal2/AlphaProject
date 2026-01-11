@@ -13,6 +13,7 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bullmq": "^5.66.4",
+    "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
@@ -21,6 +22,7 @@
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
     "mysql2": "^3.16.0",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.12",

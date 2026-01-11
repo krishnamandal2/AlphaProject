@@ -93,7 +93,13 @@ const { sendGreetingMail } = require("../services/mailService");
     const { name, email, mobile, password } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const image = req.file ? req.file.filename : null;
+
+    //for uploads folder
+    // const image = req.file ? req.file.filename : null;
+
+
+     //for cloudniary
+      const image = req.file ? req.file.path : null;
 
     // ✅ create user
     const result = await userModel.createUser({

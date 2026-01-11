@@ -13,7 +13,7 @@ cron.schedule("*/1 * * * *", async () => {
       try {
         const pdfBuffer = await buildUserPDF(user);
 
-        await sendGreetingMail(
+        await sendGreetingMail( 
           user.email,
           pdfBuffer,
           `${user.name.replace(/\s+/g, "_")}_New_Year_2026.pdf`

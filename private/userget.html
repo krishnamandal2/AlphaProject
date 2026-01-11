@@ -97,7 +97,7 @@ async function loadUsers() {
           <td>${user.name}</td>
           <td>${user.email}</td>
           <td>${user.mobile}</td>
-          <td>${user.image ? `<img src="/uploads/${user.image}" />` : 'No Image'}</td>
+          <td>${user.image ? `<img src="${user.image}" />` : 'No Image'}</td>
           <td>
             <a href="detailspdf.html?id=${user.id}">
            <button>View Details</button>

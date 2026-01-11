@@ -151,7 +151,9 @@ async function loadUserDetails() {
 
     if (user.image) {
       const img = document.getElementById("profileImage");
-      img.src = user.image.startsWith("/uploads") ? user.image : `/uploads/${user.image}`;
+      // img.src = user.image.startsWith("/uploads") ? user.image : `/uploads/${user.image}`;
+      img.src = user.image;
+
       img.style.display = "block";
     }
 

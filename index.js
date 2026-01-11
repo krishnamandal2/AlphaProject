@@ -16,7 +16,11 @@ console.log("Auth route file path:", require.resolve("./routes/authRoutes"));
 const authroute=require("./routes/authRoutes")
 const app= express()
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
+// app.use("/uploads", express.static("uploads"));
+
+const uploadRoutes = require("./routes/upload.routes");
+
+app.use("/api", uploadRoutes);
 app.use(cookieParser());
 
 
